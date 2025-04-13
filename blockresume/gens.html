@@ -1,0 +1,2873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BlockResume | Web3 Resume Builder</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #0cead9;
+      --secondary: #7928ca;
+      --dark: #121212;
+      --light: #f0f0f0;
+    }
+    
+    body {
+      background-color: var(--dark);
+      color: var(--light);
+      font-family: 'Poppins', sans-serif;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+    
+    .neon-border {
+      border: 2px solid var(--primary);
+      box-shadow: 0 0 8px var(--primary), inset 0 0 8px var(--primary);
+    }
+    
+    .neon-text {
+      color: var(--primary);
+      text-shadow: 0 0 5px var(--primary), 0 0 10px var(--primary);
+    }
+    
+    .neon-button {
+      position: relative;
+      display: inline-block;
+      padding: 10px 20px;
+      color: var(--primary);
+      background: rgba(12, 234, 217, 0.1);
+      border: 2px solid var(--primary);
+      border-radius: 10px;
+      text-decoration: none;
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 2px;
+      overflow: hidden;
+      transition: 0.5s;
+      z-index: 1;
+    }
+    
+    .neon-button:hover {
+      color: var(--dark);
+      box-shadow: 0 0 20px var(--primary);
+    }
+    
+    .neon-button:before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 0;
+      height: 100%;
+      background: var(--primary);
+      z-index: -1;
+      transition: 0.5s;
+    }
+    
+    .neon-button:hover:before {
+      width: 100%;
+    }
+    
+    .gradient-bg {
+      background: linear-gradient(135deg, #121212 0%, #2a2a72 100%);
+    }
+    
+    .cyber-grid {
+      background-image: 
+        linear-gradient(rgba(12, 234, 217, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(12, 234, 217, 0.1) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+    
+    .glow-on-hover {
+      transition: all 0.3s ease;
+    }
+    
+    .glow-on-hover:hover {
+      box-shadow: 0 0 15px var(--primary);
+      transform: translateY(-3px);
+    }
+    
+    .template {
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .template:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px var(--primary);
+    }
+    
+    .template.selected {
+      border: 2px solid var(--primary);
+      box-shadow: 0 0 15px var(--primary);
+    }
+    
+    .resume-section {
+      min-height: 100px;
+      border: 1px dashed rgba(255, 255, 255, 0.3);
+    }
+    
+    .badge {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      padding: 2px;
+    }
+    
+    .badge:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 20px var(--primary);
+    }
+    
+    .badge-inner {
+      position: absolute;
+      inset: 0;
+      margin: 2px;
+      border-radius: 50%;
+      background: var(--dark);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    
+    .badge-bg {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: conic-gradient(
+        from 0deg,
+        var(--primary),
+        var(--secondary),
+        var(--primary)
+      );
+      animation: rotate 3s linear infinite;
+      border-radius: 50%;
+    }
+    
+    @keyframes rotate {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Add these new styles for the badge content */
+    .badge-content {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: var(--dark);
+      border-radius: 50%;
+      color: var(--primary);
+    }
+
+    .badge i {
+      font-size: 2rem;
+      color: var(--primary);
+      text-shadow: 0 0 10px var(--primary);
+    }
+
+    .badge span {
+      font-size: 0.8rem;
+      margin-top: 0.5rem;
+      color: var(--light);
+    }
+    
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top: 4px solid var(--primary);
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .hidden {
+      display: none;
+    }
+    
+    #saveIndicator {
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
+    }
+    
+    .show-save {
+      opacity: 1 !important;
+    }
+    
+    .hexagon {
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      background: linear-gradient(45deg, var(--primary), var(--secondary));
+    }
+    
+    .particle {
+      position: absolute;
+      width: 5px;
+      height: 5px;
+      background: var(--primary);
+      border-radius: 50%;
+      opacity: 0.5;
+      animation: particleFloat 10s infinite linear;
+    }
+    
+    @keyframes particleFloat {
+      0% {
+        transform: translateY(0) translateX(0);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      90% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-100vh) translateX(100px);
+        opacity: 0;
+      }
+    }
+
+    /* Loading Animation Styles */
+    .boxes {
+      --size: 32px;
+      --duration: 800ms;
+      height: calc(var(--size) * 2);
+      width: calc(var(--size) * 3);
+      position: relative;
+      transform-style: preserve-3d;
+      transform-origin: 50% 50%;
+      margin-top: calc(var(--size) * 1.5 * -1);
+      transform: rotateX(60deg) rotateZ(45deg) rotateY(0deg) translateZ(0px);
+    }
+
+    .boxes .box {
+      width: var(--size);
+      height: var(--size);
+      top: 0;
+      left: 0;
+      position: absolute;
+      transform-style: preserve-3d;
+    }
+
+    .boxes .box:nth-child(1) {
+      transform: translate(100%, 0);
+      -webkit-animation: box1 var(--duration) linear infinite;
+      animation: box1 var(--duration) linear infinite;
+    }
+
+    .boxes .box:nth-child(2) {
+      transform: translate(0, 100%);
+      -webkit-animation: box2 var(--duration) linear infinite;
+      animation: box2 var(--duration) linear infinite;
+    }
+
+    .boxes .box:nth-child(3) {
+      transform: translate(100%, 100%);
+      -webkit-animation: box3 var(--duration) linear infinite;
+      animation: box3 var(--duration) linear infinite;
+    }
+
+    .boxes .box:nth-child(4) {
+      transform: translate(200%, 0);
+      -webkit-animation: box4 var(--duration) linear infinite;
+      animation: box4 var(--duration) linear infinite;
+    }
+
+    .boxes .box > div {
+      --background: #0cead9;
+      --top: auto;
+      --right: auto;
+      --bottom: auto;
+      --left: auto;
+      --translateZ: calc(var(--size) / 2);
+      --rotateY: 0deg;
+      --rotateX: 0deg;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: var(--background);
+      top: var(--top);
+      right: var(--right);
+      bottom: var(--bottom);
+      left: var(--left);
+      transform: rotateY(var(--rotateY)) rotateX(var(--rotateX)) translateZ(var(--translateZ));
+    }
+
+    .boxes .box > div:nth-child(1) {
+      --top: 0;
+      --left: 0;
+    }
+
+    .boxes .box > div:nth-child(2) {
+      --background: #7928ca;
+      --right: 0;
+      --rotateY: 90deg;
+    }
+
+    .boxes .box > div:nth-child(3) {
+      --background: #0cead9;
+      --rotateX: -90deg;
+    }
+
+    .boxes .box > div:nth-child(4) {
+      --background: #7928ca;
+      --top: 0;
+      --left: 0;
+      --translateZ: calc(var(--size) * 3 * -1);
+    }
+
+    @-webkit-keyframes box1 {
+      0%, 50% {
+        transform: translate(100%, 0);
+      }
+
+      100% {
+        transform: translate(200%, 0);
+      }
+    }
+
+    @keyframes box1 {
+      0%, 50% {
+        transform: translate(100%, 0);
+      }
+
+      100% {
+        transform: translate(200%, 0);
+      }
+    }
+
+    @-webkit-keyframes box2 {
+      0% {
+        transform: translate(0, 100%);
+      }
+
+      50% {
+        transform: translate(0, 0);
+      }
+
+      100% {
+        transform: translate(100%, 0);
+      }
+    }
+
+    @keyframes box2 {
+      0% {
+        transform: translate(0, 100%);
+      }
+
+      50% {
+        transform: translate(0, 0);
+      }
+
+      100% {
+        transform: translate(100%, 0);
+      }
+    }
+
+    @-webkit-keyframes box3 {
+      0%, 50% {
+        transform: translate(100%, 100%);
+      }
+
+      100% {
+        transform: translate(0, 100%);
+      }
+    }
+
+    @keyframes box3 {
+      0%, 50% {
+        transform: translate(100%, 100%);
+      }
+
+      100% {
+        transform: translate(0, 100%);
+      }
+    }
+
+    @-webkit-keyframes box4 {
+      0% {
+        transform: translate(200%, 0);
+      }
+
+      50% {
+        transform: translate(200%, 100%);
+      }
+
+      100% {
+        transform: translate(100%, 100%);
+      }
+    }
+
+    @keyframes box4 {
+      0% {
+        transform: translate(200%, 0);
+      }
+
+      50% {
+        transform: translate(200%, 100%);
+      }
+
+      100% {
+        transform: translate(100%, 100%);
+      }
+    }
+
+    /* Loading Screen Styles */
+    #loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: var(--dark);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      transition: opacity 0.5s ease-out;
+    }
+
+    #loading-screen.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loading-text {
+      margin-top: 6rem;
+      color: var(--primary);
+      font-size: 2rem;
+      font-weight: 500;
+      text-shadow: 0 0 10px var(--primary);
+      letter-spacing: 1px;
+      position: relative;
+      animation: glow 1.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes glow {
+      from {
+        text-shadow: 0 0 5px var(--primary), 0 0 10px var(--primary);
+      }
+      to {
+        text-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary), 0 0 30px var(--primary);
+      }
+    }
+
+    /* Add template preview styles */
+    .template-preview {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    /* Modern Tech Template Preview */
+    .preview-modern {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      padding: 0.5rem;
+    }
+    .preview-modern .header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+    .preview-modern .content {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+    }
+    .preview-modern .line {
+      height: 0.5rem;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+    }
+
+    /* Side Column Template Preview */
+    .preview-side {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      height: 100%;
+    }
+    .preview-side .sidebar {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.5rem;
+    }
+    .preview-side .main-content {
+      padding: 0.5rem;
+    }
+
+    /* Blockchain Pro Template Preview */
+    .preview-blockchain {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      padding: 0.5rem;
+    }
+    .preview-blockchain .badges {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .preview-blockchain .badge {
+      width: 2rem;
+      height: 2rem;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* NFT Showcase Template Preview */
+    .preview-nft {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+      padding: 0.5rem;
+    }
+    .preview-nft .nft-card {
+      aspect-ratio: 1;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+    }
+
+    /* Web3 Developer Template Preview */
+    .preview-web3 {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      padding: 0.5rem;
+    }
+    .preview-web3 .skills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+      margin-bottom: 0.5rem;
+    }
+    .preview-web3 .skill {
+      height: 1.5rem;
+      width: 4rem;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+    }
+
+    /* DeFi Expert Template Preview */
+    .preview-defi {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+      padding: 0.5rem;
+    }
+    .preview-defi .chart {
+      aspect-ratio: 1;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+    }
+
+    .selected-icon {
+      background: rgba(12, 234, 217, 0.2);
+      border: 2px solid var(--primary);
+      transform: scale(1.1);
+    }
+    
+    .badge-icon {
+      transition: all 0.3s ease;
+    }
+    
+    .badge-icon:hover {
+      transform: scale(1.1);
+      background: rgba(12, 234, 217, 0.1);
+    }
+    
+    .hexagon {
+      transition: all 0.2s ease;
+    }
+
+    .preview-modern .header {
+      backdrop-filter: blur(4px);
+    }
+
+    .preview-side .sidebar {
+      backdrop-filter: blur(4px);
+    }
+
+    .preview-blockchain .hexagon {
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    }
+
+    .preview-nft .nft-card {
+      backdrop-filter: blur(4px);
+    }
+
+    .preview-web3 .skill-tag {
+      backdrop-filter: blur(4px);
+    }
+
+    .preview-defi .defi-stats,
+    .preview-defi .yield-chart {
+      backdrop-filter: blur(4px);
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div id="loading-screen">
+    <div class="boxes">
+      <div class="box">
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <div class="box">
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <div class="box">
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <div class="box">
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+    </div>
+    <div class="loading-text">Loading BlockResume...</div>
+  </div>
+
+  <!-- Background particles -->
+  <div id="particles-container" class="fixed inset-0 pointer-events-none"></div>
+
+  <!-- Auth Section -->
+  <div id="auth-section" class="min-h-screen flex items-center justify-center p-6 cyber-grid">
+    <div class="max-w-md w-full bg-gray-900 rounded-xl p-8 neon-border">
+      <!-- Initial Sign In View -->
+      <div id="initial-auth" class="text-center">
+        <h1 class="text-4xl font-bold mb-2">
+          <span class="neon-text">Block</span>Resume
+        </h1>
+        <p class="text-gray-400 mb-8">Web3 Resume Builder</p>
+      
+      <div class="space-y-4">
+        <button id="google-login" class="w-full bg-gray-800 hover:bg-gray-700 text-white py-3 px-4 rounded-lg flex items-center justify-center glow-on-hover">
+          <i class="fab fa-google mr-2"></i>
+            Login with Google
+        </button>
+        
+          <div class="relative">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-gray-700"></div>
+            </div>
+            <div class="relative flex justify-center text-sm">
+              <span class="px-2 bg-gray-900 text-gray-400">or</span>
+            </div>
+          </div>
+
+          <button id="show-signup" class="w-full neon-button py-3">
+            Create Account
+        </button>
+        </div>
+        
+        <p class="text-xs text-center text-gray-500 mt-4">
+          By continuing, you agree to our Terms of Service and Privacy Policy
+        </p>
+      </div>
+
+      <!-- Optional Registration Form -->
+      <div id="signup-form" class="hidden">
+        <div class="flex items-center mb-6">
+          <button id="back-to-signin" class="text-gray-400 hover:text-white mr-4">
+            <i class="fas fa-arrow-left"></i>
+          </button>
+          <h2 class="text-2xl font-semibold">Create Your Account</h2>
+        </div>
+
+        <form id="registration-form" class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-400 mb-1">First Name*</label>
+              <input type="text" name="firstName" required class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-400 mb-1">Last Name*</label>
+              <input type="text" name="lastName" required class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary">
+    </div>
+  </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-400 mb-1">Email Address*</label>
+            <input type="email" name="email" required class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary">
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-400 mb-1">Password*</label>
+            <input type="password" name="password" required minlength="8" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary">
+            <p class="text-xs text-gray-500 mt-1">Minimum 8 characters</p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-400 mb-1">Professional Title (Optional)</label>
+            <input type="text" name="title" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary" placeholder="e.g., Full Stack Developer">
+          </div>
+
+          <div class="pt-4">
+            <button type="submit" class="w-full neon-button py-3">
+              Create Account
+            </button>
+          </div>
+
+          <p class="text-xs text-center text-gray-500">
+            * Required fields
+          </p>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Auth Section Functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      const googleLogin = document.getElementById('google-login');
+      const directAccess = document.getElementById('direct-access');
+      const showSignupForm = document.getElementById('show-signup-form');
+      const backToSignin = document.getElementById('back-to-signin');
+      const initialAuth = document.getElementById('initial-auth');
+      const signupForm = document.getElementById('signup-form');
+      const registrationForm = document.getElementById('registration-form');
+
+      // Direct access - Skip registration
+      directAccess.addEventListener('click', function() {
+        // Set default user data
+        const defaultUser = {
+          name: 'User',
+          title: 'Professional',
+          avatar: 'https://ui-avatars.com/api/?name=User&background=0D8ABC&color=fff'
+        };
+        updateUserProfile(defaultUser);
+
+        // Show main app
+        document.getElementById('auth-section').classList.add('hidden');
+        document.getElementById('app').classList.remove('hidden');
+        startAutoSave();
+      });
+
+      // Google login - Skip registration
+      googleLogin.addEventListener('click', function() {
+        // Simulate Google login with default data
+        const googleUser = {
+          name: 'Google User',
+          title: 'Professional',
+          avatar: 'https://ui-avatars.com/api/?name=Google+User&background=0D8ABC&color=fff'
+        };
+        updateUserProfile(googleUser);
+
+        // Show main app
+        document.getElementById('auth-section').classList.add('hidden');
+        document.getElementById('app').classList.remove('hidden');
+        startAutoSave();
+      });
+
+      // Optional registration form handling
+      showSignupForm?.addEventListener('click', function() {
+        initialAuth.classList.add('hidden');
+        signupForm.classList.remove('hidden');
+      });
+
+      backToSignin?.addEventListener('click', function() {
+        signupForm.classList.add('hidden');
+        initialAuth.classList.remove('hidden');
+      });
+
+      // Handle optional registration form submission
+      registrationForm?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(registrationForm);
+        const userData = {
+          name: formData.get('firstName') && formData.get('lastName') 
+            ? `${formData.get('firstName')} ${formData.get('lastName')}`
+            : 'User',
+          title: formData.get('title') || 'Professional',
+          avatar: document.getElementById('preview-avatar').src
+        };
+
+        // Update user profile
+        updateUserProfile(userData);
+
+        // Show main app
+        document.getElementById('auth-section').classList.add('hidden');
+        document.getElementById('app').classList.remove('hidden');
+        startAutoSave();
+      });
+
+      // Avatar upload preview (optional)
+      const previewAvatar = document.getElementById('preview-avatar');
+      document.querySelector('button[type="button"]')?.addEventListener('click', function() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = function(e) {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+              previewAvatar.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+          }
+        };
+        input.click();
+      });
+    });
+  </script>
+
+  <!-- Main Application -->
+  <div id="app" class="hidden">
+    <!-- Header -->
+    <header class="bg-gray-900 py-4 border-b border-gray-800">
+      <div class="container mx-auto px-6 flex items-center justify-between">
+        <div class="flex items-center">
+          <h1 class="text-2xl font-bold">
+            <span class="neon-text">Block</span>Resume
+          </h1>
+        </div>
+        
+        <div class="flex items-center space-x-4">
+          <a href="https://play.google.com/store/apps/details?id=com.aptoslabs.petra.wallet" 
+             target="_blank" 
+             class="neon-button text-sm py-2 px-4 flex items-center">
+            <i class="fas fa-wallet mr-1"></i> Connect Petra Wallet
+          </a>
+          
+          <div id="saveIndicator" class="text-sm text-gray-400">
+            <i class="fas fa-save mr-1"></i> Autosaved
+          </div>
+          
+          <!-- User Profile Dropdown -->
+          <div class="relative" id="user-profile">
+            <button class="flex items-center space-x-2 bg-gray-800 rounded-lg px-4 py-2 hover:bg-gray-700 transition-all focus:outline-none" id="user-menu-button">
+              <img id="user-avatar" class="w-8 h-8 rounded-full" src="https://ui-avatars.com/api/?name=User&background=0D8ABC&color=fff" alt="User avatar">
+              <span id="user-name" class="text-sm text-white">User</span>
+              <i class="fas fa-chevron-down text-xs text-gray-400"></i>
+          </button>
+          
+            <!-- Dropdown Menu -->
+            <div class="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-lg py-1 hidden" id="user-dropdown">
+              <a href="#" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-all">
+                <i class="fas fa-user mr-2"></i> Profile
+              </a>
+              <a href="#" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-all">
+                <i class="fas fa-cog mr-2"></i> Settings
+              </a>
+              <div class="border-t border-gray-700 my-1"></div>
+              <a href="#" class="block px-4 py-2 text-sm text-red-400 hover:bg-gray-700 hover:text-red-300 transition-all" id="logout-button">
+                <i class="fas fa-sign-out-alt mr-2"></i> Logout
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-8">
+      <!-- Tabs -->
+      <div class="flex border-b border-gray-800 mb-8">
+        <button id="templates-tab" class="px-6 py-3 font-medium text-sm border-b-2 border-transparent hover:text-primary hover:border-primary transition-all">
+          Templates
+        </button>
+        <button id="editor-tab" class="px-6 py-3 font-medium text-sm border-b-2 border-transparent hover:text-primary hover:border-primary transition-all">
+          Editor
+        </button>
+        <button id="badges-tab" class="px-6 py-3 font-medium text-sm border-b-2 border-transparent hover:text-primary hover:border-primary transition-all">
+          NFT Badges
+        </button>
+      </div>
+
+      <script>
+        // Tab switching functionality
+        function initializeTabs() {
+          const tabs = {
+            'templates-tab': 'templates-section',
+            'editor-tab': 'editor-section',
+            'badges-tab': 'badges-section'
+          };
+          
+          // Function to activate a tab
+          function activateTab(tabId) {
+            // Hide all sections
+            Object.values(tabs).forEach(sectionId => {
+              document.getElementById(sectionId).classList.add('hidden');
+            });
+            
+            // Remove active state from all tabs
+            Object.keys(tabs).forEach(tabId => {
+              document.getElementById(tabId).classList.remove('border-primary', 'text-primary');
+              document.getElementById(tabId).classList.add('border-transparent');
+            });
+            
+            // Show selected section
+            const sectionId = tabs[tabId];
+            document.getElementById(sectionId).classList.remove('hidden');
+            
+            // Activate selected tab
+            document.getElementById(tabId).classList.remove('border-transparent');
+            document.getElementById(tabId).classList.add('border-primary', 'text-primary');
+          }
+          
+          // Add click handlers to tabs
+          Object.keys(tabs).forEach(tabId => {
+            document.getElementById(tabId).addEventListener('click', () => {
+              activateTab(tabId);
+            });
+          });
+          
+          // Activate Templates tab by default
+          activateTab('templates-tab');
+        }
+
+        // Initialize tabs when document is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+          initializeTabs();
+        });
+      </script>
+
+      <!-- Templates Section -->
+      <div id="templates-section">
+        <div class="container mx-auto px-6 py-8">
+          <!-- Add header with Explore Templates button -->
+          <div class="flex justify-between items-center mb-8">
+            <h2 class="text-2xl font-semibold">Choose a Template</h2>
+            <a href="https://www.canva.com/templates/?query=free-resume-templates" 
+               target="_blank" 
+               class="neon-button text-sm py-2 px-4 flex items-center">
+              <i class="fas fa-external-link-alt mr-2"></i>
+              Explore Templates
+            </a>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            
+            <!-- Template 1 - Modern Tech -->
+            <div class="template bg-gray-800 rounded-lg overflow-hidden glow-on-hover" data-id="1">
+              <div class="h-48 bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600">
+                <div class="template-preview preview-modern p-4">
+                  <div class="header bg-gray-900 bg-opacity-30 rounded-lg p-3 mb-4">
+                    <div class="w-32 h-4 bg-white bg-opacity-20 rounded"></div>
+                    <div class="flex gap-2 mt-2">
+                      <div class="w-8 h-8 rounded-full bg-white bg-opacity-20"></div>
+                      <div class="w-24 h-3 bg-white bg-opacity-20 rounded mt-2"></div>
+                    </div>
+                  </div>
+                  <div class="content space-y-3">
+                    <div class="flex gap-2">
+                      <div class="w-20 h-6 bg-white bg-opacity-20 rounded"></div>
+                      <div class="w-24 h-6 bg-white bg-opacity-20 rounded"></div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                      <div class="h-8 bg-white bg-opacity-20 rounded"></div>
+                      <div class="h-8 bg-white bg-opacity-20 rounded"></div>
+                      <div class="h-8 bg-white bg-opacity-20 rounded"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="p-4">
+                <h3 class="text-lg font-medium">Modern Tech</h3>
+                <p class="text-gray-400 text-sm">Clean, minimalist design with emphasis on technical skills and modern layout. Perfect for software developers and tech professionals.</p>
+              </div>
+            </div>
+            
+            <!-- Template 2 - Side Column -->
+            <div class="template bg-gray-800 rounded-lg overflow-hidden glow-on-hover" data-id="2">
+              <div class="h-48 bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-600">
+                <div class="template-preview preview-side h-full">
+                  <div class="sidebar bg-gray-900 bg-opacity-30 p-3 space-y-3">
+                    <div class="w-16 h-16 rounded-full bg-white bg-opacity-20 mx-auto"></div>
+                    <div class="w-full h-3 bg-white bg-opacity-20 rounded"></div>
+                    <div class="w-3/4 h-3 bg-white bg-opacity-20 rounded"></div>
+                    <div class="space-y-2 mt-4">
+                      <div class="w-full h-2 bg-white bg-opacity-20 rounded"></div>
+                      <div class="w-full h-2 bg-white bg-opacity-20 rounded"></div>
+                      <div class="w-full h-2 bg-white bg-opacity-20 rounded"></div>
+                    </div>
+                  </div>
+                  <div class="main-content p-3 space-y-4">
+                    <div class="w-3/4 h-4 bg-white bg-opacity-20 rounded"></div>
+                    <div class="space-y-2">
+                      <div class="w-full h-2 bg-white bg-opacity-20 rounded"></div>
+                      <div class="w-full h-2 bg-white bg-opacity-20 rounded"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="p-4">
+                <h3 class="text-lg font-medium">Side Column</h3>
+                <p class="text-gray-400 text-sm">Professional two-column layout with dedicated sections for skills, contact info, and achievements. Ideal for experienced professionals.</p>
+              </div>
+            </div>
+            
+            <!-- Template 3 - Blockchain Pro -->
+            <div class="template bg-gray-800 rounded-lg overflow-hidden glow-on-hover" data-id="3">
+              <div class="h-48 bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500">
+                <div class="template-preview preview-blockchain p-4">
+                  <div class="badges flex gap-3 mb-4">
+                    <div class="hexagon w-12 h-12 bg-white bg-opacity-20"></div>
+                    <div class="hexagon w-12 h-12 bg-white bg-opacity-20"></div>
+                    <div class="hexagon w-12 h-12 bg-white bg-opacity-20"></div>
+                  </div>
+                  <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-2">
+                      <div class="w-full h-3 bg-white bg-opacity-20 rounded"></div>
+                      <div class="w-3/4 h-3 bg-white bg-opacity-20 rounded"></div>
+                    </div>
+                    <div class="bg-gray-900 bg-opacity-30 rounded-lg p-2">
+                      <div class="text-xs text-center text-white text-opacity-50">Smart Contract Stats</div>
+                      <div class="grid grid-cols-2 gap-2 mt-2">
+                        <div class="h-8 bg-white bg-opacity-20 rounded"></div>
+                        <div class="h-8 bg-white bg-opacity-20 rounded"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="p-4">
+                <h3 class="text-lg font-medium">Blockchain Pro</h3>
+                <p class="text-gray-400 text-sm">Showcase your blockchain expertise with dedicated sections for smart contracts, DeFi projects, and Web3 achievements.</p>
+              </div>
+            </div>
+            
+            <!-- Template 4 - NFT Showcase -->
+            <div class="template bg-gray-800 rounded-lg overflow-hidden glow-on-hover" data-id="4">
+              <div class="h-48 bg-gradient-to-br from-pink-500 via-rose-500 to-red-500">
+                <div class="template-preview preview-nft p-4 grid grid-cols-3 gap-3">
+                  <div class="nft-card bg-gray-900 bg-opacity-30 rounded-lg p-2">
+                    <div class="w-full h-16 bg-white bg-opacity-20 rounded mb-2"></div>
+                    <div class="w-3/4 h-2 bg-white bg-opacity-20 rounded"></div>
+                    <div class="w-1/2 h-2 bg-white bg-opacity-20 rounded mt-1"></div>
+                  </div>
+                  <div class="nft-card bg-gray-900 bg-opacity-30 rounded-lg p-2">
+                    <div class="w-full h-16 bg-white bg-opacity-20 rounded mb-2"></div>
+                    <div class="w-3/4 h-2 bg-white bg-opacity-20 rounded"></div>
+                    <div class="w-1/2 h-2 bg-white bg-opacity-20 rounded mt-1"></div>
+                  </div>
+                  <div class="nft-card bg-gray-900 bg-opacity-30 rounded-lg p-2">
+                    <div class="w-full h-16 bg-white bg-opacity-20 rounded mb-2"></div>
+                    <div class="w-3/4 h-2 bg-white bg-opacity-20 rounded"></div>
+                    <div class="w-1/2 h-2 bg-white bg-opacity-20 rounded mt-1"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="p-4">
+                <h3 class="text-lg font-medium">NFT Showcase</h3>
+                <p class="text-gray-400 text-sm">Display your NFT portfolio with a gallery-style layout, featuring collections, achievements, and digital art projects.</p>
+              </div>
+            </div>
+            
+            <!-- Template 5 - Web3 Developer -->
+            <div class="template bg-gray-800 rounded-lg overflow-hidden glow-on-hover" data-id="5">
+              <div class="h-48 bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-600">
+                <div class="template-preview preview-web3 p-4">
+                  <div class="skills flex flex-wrap gap-2 mb-4">
+                    <div class="skill-tag bg-gray-900 bg-opacity-30 rounded-full px-3 py-1">
+                      <div class="w-12 h-2 bg-white bg-opacity-20 rounded"></div>
+                    </div>
+                    <div class="skill-tag bg-gray-900 bg-opacity-30 rounded-full px-3 py-1">
+                      <div class="w-16 h-2 bg-white bg-opacity-20 rounded"></div>
+                    </div>
+                    <div class="skill-tag bg-gray-900 bg-opacity-30 rounded-full px-3 py-1">
+                      <div class="w-14 h-2 bg-white bg-opacity-20 rounded"></div>
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-2 gap-4">
+                    <div class="project-card bg-gray-900 bg-opacity-30 rounded-lg p-3">
+                      <div class="flex items-center gap-2 mb-2">
+                        <div class="w-6 h-6 rounded bg-white bg-opacity-20"></div>
+                        <div class="w-20 h-3 bg-white bg-opacity-20 rounded"></div>
+                      </div>
+                      <div class="space-y-1">
+                        <div class="w-full h-2 bg-white bg-opacity-20 rounded"></div>
+                        <div class="w-3/4 h-2 bg-white bg-opacity-20 rounded"></div>
+                      </div>
+                    </div>
+                    <div class="project-card bg-gray-900 bg-opacity-30 rounded-lg p-3">
+                      <div class="flex items-center gap-2 mb-2">
+                        <div class="w-6 h-6 rounded bg-white bg-opacity-20"></div>
+                        <div class="w-20 h-3 bg-white bg-opacity-20 rounded"></div>
+                      </div>
+                      <div class="space-y-1">
+                        <div class="w-full h-2 bg-white bg-opacity-20 rounded"></div>
+                        <div class="w-3/4 h-2 bg-white bg-opacity-20 rounded"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="p-4">
+                <h3 class="text-lg font-medium">Web3 Developer</h3>
+                <p class="text-gray-400 text-sm">Highlight your Web3 development skills with sections for dApps, protocols, and blockchain integrations.</p>
+              </div>
+            </div>
+            
+            <!-- Template 6 - DeFi Expert -->
+            <div class="template bg-gray-800 rounded-lg overflow-hidden glow-on-hover" data-id="6">
+              <div class="h-48 bg-gradient-to-br from-amber-400 via-orange-500 to-red-500">
+                <div class="template-preview preview-defi p-4">
+                  <div class="grid grid-cols-2 gap-4">
+                    <div class="defi-stats bg-gray-900 bg-opacity-30 rounded-lg p-3">
+                      <div class="text-xs text-center text-white text-opacity-50 mb-2">Protocol Stats</div>
+                      <div class="flex justify-between items-center">
+                        <div class="w-12 h-12 rounded-full bg-white bg-opacity-20"></div>
+                        <div class="space-y-1">
+                          <div class="w-16 h-2 bg-white bg-opacity-20 rounded"></div>
+                          <div class="w-12 h-2 bg-white bg-opacity-20 rounded"></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="yield-chart bg-gray-900 bg-opacity-30 rounded-lg p-3">
+                      <div class="text-xs text-center text-white text-opacity-50 mb-2">Yield Analysis</div>
+                      <div class="h-20 bg-white bg-opacity-20 rounded"></div>
+                    </div>
+                    <div class="col-span-2 bg-gray-900 bg-opacity-30 rounded-lg p-3">
+                      <div class="text-xs text-center text-white text-opacity-50 mb-2">Portfolio Performance</div>
+                      <div class="grid grid-cols-3 gap-2">
+                        <div class="h-8 bg-white bg-opacity-20 rounded"></div>
+                        <div class="h-8 bg-white bg-opacity-20 rounded"></div>
+                        <div class="h-8 bg-white bg-opacity-20 rounded"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="p-4">
+                <h3 class="text-lg font-medium">DeFi Expert</h3>
+                <p class="text-gray-400 text-sm">Specialized template for DeFi professionals featuring protocol experience, yield farming achievements, and portfolio analytics.</p>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+
+      <!-- Editor Section -->
+      <div id="editor-section" class="hidden">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-semibold">Resume Editor</h2>
+          <div class="flex items-center space-x-3">
+            <button id="add-badge-btn" class="neon-button text-sm py-2">
+              <i class="fas fa-plus mr-1"></i> Add NFT Badge
+            </button>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <!-- Sidebar -->
+          <div class="lg:col-span-1">
+            <div class="bg-gray-800 rounded-xl p-6 neon-border sticky top-6">
+              <h3 class="text-lg font-semibold mb-4">Resume Sections</h3>
+              
+              <div class="space-y-3">
+                <div class="bg-gray-700 rounded-lg p-3 cursor-pointer glow-on-hover section-btn" data-section="personal-info">
+                  <i class="fas fa-user mr-2"></i> Personal Info
+                </div>
+                <div class="bg-gray-700 rounded-lg p-3 cursor-pointer glow-on-hover section-btn" data-section="work-experience">
+                  <i class="fas fa-briefcase mr-2"></i> Work Experience
+                </div>
+                <div class="bg-gray-700 rounded-lg p-3 cursor-pointer glow-on-hover section-btn" data-section="education">
+                  <i class="fas fa-graduation-cap mr-2"></i> Education
+                </div>
+                <div class="bg-gray-700 rounded-lg p-3 cursor-pointer glow-on-hover section-btn" data-section="skills">
+                  <i class="fas fa-code mr-2"></i> Skills
+                </div>
+                <div class="bg-gray-700 rounded-lg p-3 cursor-pointer glow-on-hover section-btn" data-section="projects">
+                  <i class="fas fa-project-diagram mr-2"></i> Projects
+                </div>
+                <div class="bg-gray-700 rounded-lg p-3 cursor-pointer glow-on-hover section-btn" data-section="certifications">
+                  <i class="fas fa-certificate mr-2"></i> Certifications
+                </div>
+                <div class="bg-gray-700 rounded-lg p-3 cursor-pointer glow-on-hover section-btn" data-section="languages">
+                  <i class="fas fa-language mr-2"></i> Languages
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Resume Preview -->
+          <div class="lg:col-span-2">
+            <!-- Section Forms -->
+            <div id="section-forms" class="mb-8">
+              <!-- Personal Info Form -->
+              <div id="personal-info-form" class="section-form hidden">
+                <div class="bg-gray-800 rounded-xl p-6 mb-6">
+                  <h3 class="text-xl font-semibold mb-4 text-primary">Personal Information</h3>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-400 mb-1">Full Name</label>
+                      <input type="text" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary" placeholder="John Doe">
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-400 mb-1">Job Title</label>
+                      <input type="text" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary" placeholder="Blockchain Developer">
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-400 mb-1">Email</label>
+                      <input type="email" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary" placeholder="john@example.com">
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-400 mb-1">Phone</label>
+                      <input type="tel" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary" placeholder="+1 234 567 8900">
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-400 mb-1">Location</label>
+                      <input type="text" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary" placeholder="City, Country">
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-400 mb-1">Website</label>
+                      <input type="url" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary" placeholder="https://yourportfolio.com">
+                    </div>
+                    <div class="md:col-span-2">
+                      <label class="block text-sm font-medium text-gray-400 mb-1">Professional Summary</label>
+                      <textarea class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary h-32" placeholder="Write a brief professional summary..."></textarea>
+                    </div>
+                    <div class="md:col-span-2">
+                      <label class="block text-sm font-medium text-gray-400 mb-1">Social Links</label>
+                      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="flex items-center">
+                          <i class="fab fa-linkedin text-primary mr-2"></i>
+                          <input type="url" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary" placeholder="LinkedIn URL">
+                        </div>
+                        <div class="flex items-center">
+                          <i class="fab fa-github text-primary mr-2"></i>
+                          <input type="url" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary" placeholder="GitHub URL">
+                        </div>
+                        <div class="flex items-center">
+                          <i class="fab fa-twitter text-primary mr-2"></i>
+                          <input type="url" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary" placeholder="Twitter URL">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex justify-end mt-6">
+                    <button class="neon-button text-sm py-2 px-6" onclick="updatePersonalInfo()">
+                      <i class="fas fa-save mr-2"></i> Save Changes
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Work Experience Form -->
+              <div id="work-experience-form" class="section-form hidden">
+                <div class="bg-gray-800 rounded-xl p-6 mb-6">
+                  <h3 class="text-xl font-semibold mb-4 text-primary">Work Experience</h3>
+                  <div id="work-experiences">
+                    <div class="work-experience-entry border-b border-gray-700 pb-4 mb-4">
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label class="block text-sm font-medium text-gray-400 mb-1">Company Name</label>
+                          <input type="text" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary" placeholder="Company Name">
+                        </div>
+                        <div>
+                          <label class="block text-sm font-medium text-gray-400 mb-1">Job Title</label>
+                          <input type="text" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary" placeholder="Job Title">
+                        </div>
+                        <div>
+                          <label class="block text-sm font-medium text-gray-400 mb-1">Start Date</label>
+                          <input type="date" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary">
+                        </div>
+                        <div>
+                          <label class="block text-sm font-medium text-gray-400 mb-1">End Date</label>
+                          <input type="date" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary">
+                        </div>
+                        <div class="md:col-span-2">
+                          <label class="block text-sm font-medium text-gray-400 mb-1">Responsibilities & Achievements</label>
+                          <textarea class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary h-32" placeholder="• List your key responsibilities and achievements&#10;• Use bullet points for better readability"></textarea>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex justify-between mt-4">
+                    <button class="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg" onclick="addWorkExperience()">
+                      <i class="fas fa-plus mr-2"></i> Add Another Experience
+                    </button>
+                    <button class="neon-button text-sm py-2 px-6" onclick="updateWorkExperience()">
+                      <i class="fas fa-save mr-2"></i> Save Changes
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Education Form -->
+              <div id="education-form" class="section-form hidden">
+                <div class="bg-gray-800 rounded-xl p-6 mb-6">
+                  <h3 class="text-xl font-semibold mb-4 text-primary">Education</h3>
+                  <div id="education-entries">
+                    <div class="education-entry border-b border-gray-700 pb-4 mb-4">
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label class="block text-sm font-medium text-gray-400 mb-1">Institution Name</label>
+                          <input type="text" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary" placeholder="University/School Name">
+                        </div>
+                        <div>
+                          <label class="block text-sm font-medium text-gray-400 mb-1">Degree/Certificate</label>
+                          <input type="text" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary" placeholder="e.g., Bachelor of Science in Computer Science">
+                        </div>
+                        <div>
+                          <label class="block text-sm font-medium text-gray-400 mb-1">Start Date</label>
+                          <input type="date" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary">
+                        </div>
+                        <div>
+                          <label class="block text-sm font-medium text-gray-400 mb-1">End Date</label>
+                          <input type="date" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary">
+                        </div>
+                        <div class="md:col-span-2">
+                          <label class="block text-sm font-medium text-gray-400 mb-1">Description</label>
+                          <textarea class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary h-32" placeholder="• Major subjects, achievements, or relevant coursework&#10;• GPA, honors, or awards"></textarea>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex justify-between mt-4">
+                    <button class="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg" onclick="addEducation()">
+                      <i class="fas fa-plus mr-2"></i> Add Another Education
+                    </button>
+                    <button class="neon-button text-sm py-2 px-6" onclick="updateEducation()">
+                      <i class="fas fa-save mr-2"></i> Save Changes
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Skills Form -->
+              <div id="skills-form" class="section-form hidden">
+                <div class="bg-gray-800 rounded-xl p-6 mb-6">
+                  <h3 class="text-xl font-semibold mb-4 text-primary">Skills</h3>
+                  <div class="grid grid-cols-1 gap-4">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-400 mb-1">Technical Skills</label>
+                      <input type="text" id="technical-skills" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary" placeholder="Add skills separated by commas (e.g., JavaScript, Python, React)">
+                      <div class="flex flex-wrap gap-2 mt-2" id="technical-skills-tags"></div>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-400 mb-1">Soft Skills</label>
+                      <input type="text" id="soft-skills" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary" placeholder="Add soft skills (e.g., Leadership, Communication)">
+                      <div class="flex flex-wrap gap-2 mt-2" id="soft-skills-tags"></div>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-400 mb-1">Tools & Technologies</label>
+                      <input type="text" id="tools-skills" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary" placeholder="Add tools (e.g., Git, Docker, AWS)">
+                      <div class="flex flex-wrap gap-2 mt-2" id="tools-skills-tags"></div>
+                    </div>
+                  </div>
+                  <div class="flex justify-end mt-6">
+                    <button class="neon-button text-sm py-2 px-6" onclick="updateSkills()">
+                      <i class="fas fa-save mr-2"></i> Save Changes
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Projects Form -->
+              <div id="projects-form" class="section-form hidden">
+                <div class="bg-gray-800 rounded-xl p-6 mb-6">
+                  <h3 class="text-xl font-semibold mb-4 text-primary">Projects</h3>
+                  <div id="project-entries">
+                    <div class="project-entry border-b border-gray-700 pb-4 mb-4">
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label class="block text-sm font-medium text-gray-400 mb-1">Project Name</label>
+                          <input type="text" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary" placeholder="Project Name">
+                        </div>
+                        <div>
+                          <label class="block text-sm font-medium text-gray-400 mb-1">Technologies Used</label>
+                          <input type="text" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary" placeholder="e.g., React, Node.js, MongoDB">
+                        </div>
+                        <div>
+                          <label class="block text-sm font-medium text-gray-400 mb-1">Project URL</label>
+                          <input type="url" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary" placeholder="https://...">
+                        </div>
+                        <div>
+                          <label class="block text-sm font-medium text-gray-400 mb-1">GitHub URL</label>
+                          <input type="url" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary" placeholder="https://github.com/...">
+                        </div>
+                        <div class="md:col-span-2">
+                          <label class="block text-sm font-medium text-gray-400 mb-1">Project Description</label>
+                          <textarea class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary h-32" placeholder="• Describe the project and its key features&#10;• Highlight your role and contributions&#10;• Mention any notable achievements or metrics"></textarea>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex justify-between mt-4">
+                    <button class="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg" onclick="addProject()">
+                      <i class="fas fa-plus mr-2"></i> Add Another Project
+                    </button>
+                    <button class="neon-button text-sm py-2 px-6" onclick="updateProjects()">
+                      <i class="fas fa-save mr-2"></i> Save Changes
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Certifications Form -->
+              <div id="certifications-form" class="section-form hidden">
+                <div class="bg-gray-800 rounded-xl p-6 mb-6">
+                  <h3 class="text-xl font-semibold mb-4 text-primary">Certifications</h3>
+                  <div id="certification-entries">
+                    <div class="certification-entry border-b border-gray-700 pb-4 mb-4">
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label class="block text-sm font-medium text-gray-400 mb-1">Certification Name</label>
+                          <input type="text" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary" placeholder="e.g., AWS Solutions Architect">
+                        </div>
+                        <div>
+                          <label class="block text-sm font-medium text-gray-400 mb-1">Issuing Organization</label>
+                          <input type="text" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary" placeholder="e.g., Amazon Web Services">
+                        </div>
+                        <div>
+                          <label class="block text-sm font-medium text-gray-400 mb-1">Issue Date</label>
+                          <input type="date" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary">
+                        </div>
+                        <div>
+                          <label class="block text-sm font-medium text-gray-400 mb-1">Expiry Date (Optional)</label>
+                          <input type="date" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary">
+                        </div>
+                        <div>
+                          <label class="block text-sm font-medium text-gray-400 mb-1">Credential ID</label>
+                          <input type="text" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary" placeholder="Certificate ID or Number">
+                        </div>
+                        <div>
+                          <label class="block text-sm font-medium text-gray-400 mb-1">Credential URL</label>
+                          <input type="url" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary" placeholder="https://...">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex justify-between mt-4">
+                    <button class="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg" onclick="addCertification()">
+                      <i class="fas fa-plus mr-2"></i> Add Another Certification
+                    </button>
+                    <button class="neon-button text-sm py-2 px-6" onclick="updateCertifications()">
+                      <i class="fas fa-save mr-2"></i> Save Changes
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <script>
+                // ... existing code ...
+
+                // Certifications Functions
+                function addCertification() {
+                  const template = document.querySelector('.certification-entry').cloneNode(true);
+                  template.querySelectorAll('input').forEach(input => input.value = '');
+                  document.getElementById('certification-entries').appendChild(template);
+                }
+
+                function updateCertifications() {
+                  const certifications = [];
+                  document.querySelectorAll('.certification-entry').forEach(entry => {
+                    certifications.push({
+                      name: entry.querySelector('input[placeholder*="AWS"]').value,
+                      organization: entry.querySelector('input[placeholder*="Amazon"]').value,
+                      issueDate: entry.querySelector('input[type="date"]:first-of-type').value,
+                      expiryDate: entry.querySelector('input[type="date"]:last-of-type').value,
+                      credentialId: entry.querySelector('input[placeholder*="Certificate ID"]').value,
+                      credentialUrl: entry.querySelector('input[type="url"]').value
+                    });
+                  });
+                  
+                  // Update preview
+                  const preview = document.getElementById('resume-preview');
+                  let certificationsSection = preview.querySelector('.resume-section:nth-child(8)');
+                  
+                  // If the section doesn't exist, create it
+                  if (!certificationsSection) {
+                    certificationsSection = document.createElement('div');
+                    certificationsSection.className = 'resume-section mb-8';
+                    preview.appendChild(certificationsSection);
+                  }
+                  
+                  certificationsSection.innerHTML = `
+                    <h2 class="text-xl font-semibold mb-3 border-b border-gray-300 pb-1">Certifications</h2>
+                    <div class="grid grid-cols-1 gap-4">
+                      ${certifications.map(cert => `
+                        <div class="border border-gray-200 rounded-lg p-3">
+                          <div class="flex justify-between items-start">
+                            <div>
+                              <h3 class="font-semibold">${cert.name}</h3>
+                              <p class="text-gray-600">${cert.organization}</p>
+                            </div>
+                            <div class="text-right text-sm text-gray-600">
+                              <div>Issued: ${formatDate(cert.issueDate)}</div>
+                              ${cert.expiryDate ? `<div>Expires: ${formatDate(cert.expiryDate)}</div>` : ''}
+                            </div>
+                          </div>
+                          ${cert.credentialId ? `
+                            <div class="mt-2 text-sm">
+                              <span class="text-gray-600">Credential ID:</span> ${cert.credentialId}
+                            </div>
+                          ` : ''}
+                          ${cert.credentialUrl ? `
+                            <div class="mt-1">
+                              <a href="${cert.credentialUrl}" target="_blank" class="text-blue-600 text-sm hover:underline">
+                                <i class="fas fa-external-link-alt mr-1"></i> View Credential
+                              </a>
+                            </div>
+                          ` : ''}
+                        </div>
+                      `).join('')}
+                    </div>
+                  `;
+                  
+                  showSaveIndicator();
+                }
+
+                function formatDate(dateString) {
+                  if (!dateString) return '';
+                  const date = new Date(dateString);
+                  return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                }
+
+                // Initialize section button handlers
+                document.querySelectorAll('.section-btn').forEach(button => {
+                  button.addEventListener('click', () => {
+                    // Remove active class from all buttons
+                    document.querySelectorAll('.section-btn').forEach(btn => {
+                      btn.classList.remove('bg-primary', 'text-dark');
+                    });
+                    
+                    // Add active class to clicked button
+                    button.classList.add('bg-primary', 'text-dark');
+                    
+                    // Hide all forms
+                    document.querySelectorAll('.section-form').forEach(form => {
+                      form.classList.add('hidden');
+                    });
+                    
+                    // Show selected form
+                    const sectionId = button.getAttribute('data-section');
+                    const form = document.getElementById(sectionId + '-form');
+                    if (form) {
+                      form.classList.remove('hidden');
+                    }
+                  });
+                });
+              </script>
+
+              <!-- Languages Form -->
+              <div id="languages-form" class="section-form hidden">
+                <div class="bg-gray-800 rounded-xl p-6 mb-6">
+                  <h3 class="text-xl font-semibold mb-4 text-primary">Languages</h3>
+                  <div id="language-entries">
+                    <div class="language-entry border-b border-gray-700 pb-4 mb-4">
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label class="block text-sm font-medium text-gray-400 mb-1">Language</label>
+                          <input type="text" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary" placeholder="Language Name">
+                        </div>
+                        <div>
+                          <label class="block text-sm font-medium text-gray-400 mb-1">Proficiency Level</label>
+                          <select class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary">
+                            <option value="Native">Native</option>
+                            <option value="Fluent">Fluent</option>
+                            <option value="Advanced">Advanced</option>
+                            <option value="Intermediate">Intermediate</option>
+                            <option value="Basic">Basic</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex justify-between mt-4">
+                    <button class="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg" onclick="addLanguage()">
+                      <i class="fas fa-plus mr-2"></i> Add Another Language
+                    </button>
+                    <button class="neon-button text-sm py-2 px-6" onclick="updateLanguages()">
+                      <i class="fas fa-save mr-2"></i> Save Changes
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Resume Preview -->
+            <div id="resume-preview" class="bg-white text-gray-900 rounded-xl p-8 min-h-[1000px] shadow-lg mb-6">
+              <!-- Personal Info Section -->
+              <div class="resume-section mb-8">
+                <div class="flex items-start justify-between">
+                  <div>
+                    <h1 contenteditable="true" class="text-3xl font-bold mb-1">John Blockchain</h1>
+                    <p contenteditable="true" class="text-gray-600 mb-2">Web3 Developer & Blockchain Engineer</p>
+                    <p contenteditable="true" class="text-gray-600">
+                      <i class="fas fa-envelope text-sm mr-2"></i> john@web3dev.io |
+                      <i class="fas fa-globe text-sm mx-2"></i> blockchain-portfolio.io |
+                      <i class="fas fa-map-marker-alt text-sm mx-2"></i> Decentraland
+                    </p>
+                  </div>
+                  <div class="flex items-start gap-2">
+                    <div class="badge">
+                      <div class="badge-bg"></div>
+                      <div class="badge-inner">
+                        <div class="badge-content">
+                          <i class="fas fa-code"></i>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Profile Summary -->
+              <div class="resume-section mb-8">
+                <h2 class="text-xl font-semibold mb-3 border-b border-gray-300 pb-1">Profile</h2>
+                <p contenteditable="true" class="text-gray-700">
+                  Blockchain enthusiast and full-stack developer with 5+ years of experience in building decentralized applications. 
+                  Specialized in smart contract development, NFT platforms, and Web3 integration. 
+                  Passionate about creating secure, scalable solutions on multiple blockchain networks.
+                </p>
+              </div>
+              
+              <!-- Experience Section -->
+              <div class="resume-section mb-8">
+                <h2 class="text-xl font-semibold mb-3 border-b border-gray-300 pb-1">Experience</h2>
+                
+                <div class="mb-4">
+                  <div class="flex justify-between">
+                    <h3 contenteditable="true" class="font-semibold">Senior Blockchain Developer</h3>
+                    <span contenteditable="true" class="text-gray-600">2020 - Present</span>
+                  </div>
+                  <p contenteditable="true" class="text-gray-600 italic">CryptoFuture Labs</p>
+                  <ul class="list-disc ml-5 text-gray-700 mt-2">
+                    <li contenteditable="true">Developed and deployed smart contracts for DeFi protocols on Ethereum and Solana</li>
+                    <li contenteditable="true">Led a team of 5 developers in building an NFT marketplace with 100K+ users</li>
+                    <li contenteditable="true">Integrated Web3 wallets and transaction signing for multiple dApps</li>
+                  </ul>
+                </div>
+                
+                <div>
+                  <div class="flex justify-between">
+                    <h3 contenteditable="true" class="font-semibold">Blockchain Consultant</h3>
+                    <span contenteditable="true" class="text-gray-600">2018 - 2020</span>
+                  </div>
+                  <p contenteditable="true" class="text-gray-600 italic">Web3 Solutions</p>
+                  <ul class="list-disc ml-5 text-gray-700 mt-2">
+                    <li contenteditable="true">Advised startups on blockchain architecture and tokenomics</li>
+                    <li contenteditable="true">Conducted security audits for smart contracts</li>
+                    <li contenteditable="true">Developed proof-of-concepts for enterprise blockchain implementations</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <!-- Education Section -->
+              <div class="resume-section mb-8">
+                <h2 class="text-xl font-semibold mb-3 border-b border-gray-300 pb-1">Education</h2>
+                
+                <div class="mb-4">
+                  <div class="flex justify-between">
+                    <h3 contenteditable="true" class="font-semibold">Master of Computer Science</h3>
+                    <span contenteditable="true" class="text-gray-600">2016 - 2018</span>
+                  </div>
+                  <p contenteditable="true" class="text-gray-600 italic">University of Technology, San Francisco</p>
+                  <p contenteditable="true" class="text-gray-700 mt-2">
+                    Specialized in Cryptography and Distributed Systems. Thesis on "Optimizing Consensus Algorithms for Public Blockchains"
+                  </p>
+                </div>
+              </div>
+              
+              <!-- Skills Section -->
+              <div class="resume-section mb-8">
+                <h2 class="text-xl font-semibold mb-3 border-b border-gray-300 pb-1">Skills</h2>
+                
+                <div class="flex flex-wrap gap-3 mb-4">
+                  <div class="py-1 px-3 bg-gray-200 rounded-full text-sm font-medium" contenteditable="true">Solidity</div>
+                  <div class="py-1 px-3 bg-gray-200 rounded-full text-sm font-medium" contenteditable="true">Rust</div>
+                  <div class="py-1 px-3 bg-gray-200 rounded-full text-sm font-medium" contenteditable="true">Web3.js</div>
+                  <div class="py-1 px-3 bg-gray-200 rounded-full text-sm font-medium" contenteditable="true">Ethers.js</div>
+                  <div class="py-1 px-3 bg-gray-200 rounded-full text-sm font-medium" contenteditable="true">React</div>
+                  <div class="py-1 px-3 bg-gray-200 rounded-full text-sm font-medium" contenteditable="true">Node.js</div>
+                  <div class="py-1 px-3 bg-gray-200 rounded-full text-sm font-medium" contenteditable="true">Smart Contract Auditing</div>
+                  <div class="py-1 px-3 bg-gray-200 rounded-full text-sm font-medium" contenteditable="true">DeFi Protocols</div>
+                </div>
+              </div>
+              
+              <!-- Projects Section -->
+              <div class="resume-section">
+                <h2 class="text-xl font-semibold mb-3 border-b border-gray-300 pb-1">Blockchain Projects</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="border border-gray-200 rounded-lg p-3">
+                    <h3 class="font-semibold" contenteditable="true">NFT Marketplace</h3>
+                    <p class="text-gray-700 text-sm mt-1" contenteditable="true">
+                      Built a full-featured NFT marketplace supporting ERC-721 and ERC-1155 tokens with metadata storage on IPFS
+                    </p>
+                  </div>
+                  <div class="border border-gray-200 rounded-lg p-3">
+                    <h3 class="font-semibold" contenteditable="true">DeFi Yield Aggregator</h3>
+                    <p class="text-gray-700 text-sm mt-1" contenteditable="true">
+                      Developed a smart contract system to optimize yield farming across multiple protocols
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Export Button Section -->
+            <div class="flex justify-end mt-6 mb-8">
+              <button id="export-resume-btn" class="neon-button py-3 px-8 text-lg">
+                <i class="fas fa-file-export mr-2"></i> Export Resume
+              </button>
+            </div>
+
+            <!-- Export Options Modal -->
+            <div id="export-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+              <div class="bg-gray-900 rounded-xl p-8 max-w-md w-full neon-border">
+                <h3 class="text-xl font-semibold mb-4">Export Resume</h3>
+                
+                <div class="space-y-4">
+                  <button onclick="exportAsPDF()" class="w-full bg-gray-800 hover:bg-gray-700 text-white py-3 px-4 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-file-pdf mr-2"></i> Export as PDF
+                  </button>
+                  
+                  <button onclick="exportAsWord()" class="w-full bg-gray-800 hover:bg-gray-700 text-white py-3 px-4 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-file-word mr-2"></i> Export as Word
+                  </button>
+
+                  <button onclick="closeExportModal()" class="w-full neon-button py-3">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- NFT Badges Section -->
+      <div id="badges-section" class="hidden">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-semibold">NFT Skill Badges</h2>
+          <p class="text-gray-400">Mint badges to showcase your skills on the Aptos blockchain</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+          <!-- Badge Minting -->
+          <div class="bg-gray-800 rounded-xl p-6 neon-border">
+            <h3 class="text-xl font-semibold mb-4">Mint a New Skill Badge</h3>
+            
+            <form id="mint-form" class="space-y-4">
+              <div>
+                <label class="block text-gray-400 text-sm mb-2">Skill Name</label>
+                <input type="text" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary" placeholder="e.g., Solidity, React, Smart Contracts">
+              </div>
+              
+              <div>
+                <label class="block text-gray-400 text-sm mb-2">Skill Level</label>
+                <select class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary">
+                  <option>Beginner</option>
+                  <option>Intermediate</option>
+                  <option>Advanced</option>
+                  <option>Expert</option>
+                </select>
+              </div>
+              
+              <div>
+                <label class="block text-gray-400 text-sm mb-2">Badge Icon</label>
+                <div class="grid grid-cols-4 gap-3">
+                  <div class="h-14 w-14 bg-gray-700 rounded-lg flex items-center justify-center text-2xl cursor-pointer glow-on-hover badge-icon selected-icon" data-icon="fa-code" data-name="Code">
+                    <i class="fas fa-code"></i>
+                  </div>
+                  <div class="h-14 w-14 bg-gray-700 rounded-lg flex items-center justify-center text-2xl cursor-pointer glow-on-hover badge-icon" data-icon="fa-cube" data-name="Blockchain">
+                    <i class="fas fa-cube"></i>
+                  </div>
+                  <div class="h-14 w-14 bg-gray-700 rounded-lg flex items-center justify-center text-2xl cursor-pointer glow-on-hover badge-icon" data-icon="fa-server" data-name="Backend">
+                    <i class="fas fa-server"></i>
+                  </div>
+                  <div class="h-14 w-14 bg-gray-700 rounded-lg flex items-center justify-center text-2xl cursor-pointer glow-on-hover badge-icon" data-icon="fa-database" data-name="Database">
+                    <i class="fas fa-database"></i>
+                  </div>
+                  <div class="h-14 w-14 bg-gray-700 rounded-lg flex items-center justify-center text-2xl cursor-pointer glow-on-hover badge-icon" data-icon="fa-sitemap" data-name="Architecture">
+                    <i class="fas fa-sitemap"></i>
+                  </div>
+                  <div class="h-14 w-14 bg-gray-700 rounded-lg flex items-center justify-center text-2xl cursor-pointer glow-on-hover badge-icon" data-icon="fa-robot" data-name="AI/ML">
+                    <i class="fas fa-robot"></i>
+                  </div>
+                  <div class="h-14 w-14 bg-gray-700 rounded-lg flex items-center justify-center text-2xl cursor-pointer glow-on-hover badge-icon" data-icon="fa-shield-alt" data-name="Security">
+                    <i class="fas fa-shield-alt"></i>
+                  </div>
+                  <div class="h-14 w-14 bg-gray-700 rounded-lg flex items-center justify-center text-2xl cursor-pointer glow-on-hover badge-icon" data-icon="fa-microchip" data-name="Hardware">
+                    <i class="fas fa-microchip"></i>
+                  </div>
+                </div>
+              </div>
+              
+              <button type="submit" class="w-full neon-button flex items-center justify-center mt-4">
+                <i class="fas fa-certificate mr-2"></i> Mint NFT Badge
+              </button>
+            </form>
+          </div>
+          
+          <!-- Badge Preview -->
+          <div class="bg-gray-800 rounded-xl p-6 neon-border flex flex-col">
+            <h3 class="text-xl font-semibold mb-4">Badge Preview</h3>
+            
+            <div class="flex-1 flex items-center justify-center">
+              <div class="hexagon w-64 h-64 flex items-center justify-center">
+                <div class="bg-gray-900 w-60 h-60 rounded-full flex flex-col items-center justify-center p-6 text-center">
+                  <i id="preview-icon" class="fas fa-code text-6xl mb-3 text-blue-400"></i>
+                  <h3 id="preview-skill" class="text-xl font-bold mb-1">Solidity</h3>
+                  <span id="preview-level" class="text-sm bg-blue-900 text-blue-300 px-3 py-1 rounded-full">Expert</span>
+                  <div class="mt-4 text-xs text-gray-400">
+                    Verified on Aptos Blockchain
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Your Badges -->
+        <div class="bg-gray-800 rounded-xl p-6 neon-border">
+          <h3 class="text-xl font-semibold mb-4">Your NFT Badges</h3>
+          
+          <div id="no-badges" class="text-center py-8 text-gray-400">
+            <i class="fas fa-certificate text-4xl mb-3"></i>
+            <p>You haven't minted any badges yet</p>
+            <p class="text-sm mt-2">Mint your first badge to showcase your skills on your resume</p>
+          </div>
+          
+          <div id="badge-collection" class="hidden grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            <!-- Badges will be added here dynamically -->
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modals -->
+  <div id="wallet-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+    <div class="bg-gray-900 rounded-xl p-8 max-w-md w-full neon-border">
+      <div class="text-center mb-6">
+        <h3 class="text-xl font-bold mb-2">Connect Wallet</h3>
+        <p class="text-gray-400">Connect your Petra wallet to mint and manage NFT badges</p>
+      </div>
+      
+      <div class="space-y-4">
+        <button class="w-full neon-button">
+          <i class="fas fa-wallet mr-2"></i>
+          Connect Petra Wallet
+        </button>
+        
+        <div class="flex items-center justify-center">
+          <span class="text-gray-500 text-sm">Don't have Petra wallet?</span>
+          <a href="#" class="text-primary text-sm ml-2">Get it here</a>
+        </div>
+        
+        <button id="close-wallet-modal" class="w-full bg-gray-700 hover:bg-gray-600 text-white py-3 px-4 rounded-lg">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="minting-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+    <div class="bg-gray-900 rounded-xl p-8 max-w-md w-full neon-border">
+      <div class="text-center mb-6">
+        <div class="loading-spinner mx-auto mb-4"></div>
+        <h3 class="text-xl font-bold mb-2">Minting NFT Badge</h3>
+        <p class="text-gray-400" id="minting-status">Connecting to Aptos blockchain...</p>
+      </div>
+      
+      <div class="bg-gray-800 rounded-lg p-4 mb-6">
+        <div class="flex items-center">
+          <div class="badge mr-4" style="width: 60px; height: 60px;">
+            <div class="badge-bg"></div>
+            <div class="badge-inner">
+              <i id="minting-icon" class="fas fa-code text-primary text-xl"></i>
+            </div>
+          </div>
+          
+          <div>
+            <h4 id="minting-skill" class="font-medium">Solidity</h4>
+            <p id="minting-level" class="text-gray-400 text-sm">Expert</p>
+          </div>
+        </div>
+      </div>
+      
+      <div id="minting-progress" class="w-full bg-gray-700 rounded-full h-2.5 mb-6 overflow-hidden">
+        <div class="bg-primary h-2.5 rounded-full w-[45%]"></div>
+      </div>
+      
+      <p class="text-sm text-gray-500 text-center">
+        This process may take a few moments. Please don't close this window.
+      </p>
+    </div>
+  </div>
+
+  <div id="success-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+    <div class="bg-gray-900 rounded-xl p-8 max-w-md w-full neon-border">
+      <div class="text-center mb-6">
+        <div class="w-20 h-20 rounded-full bg-green-900 mx-auto mb-4 flex items-center justify-center">
+          <i class="fas fa-check text-3xl text-green-400"></i>
+        </div>
+        <h3 class="text-xl font-bold mb-2">NFT Badge Minted!</h3>
+        <p class="text-gray-400">Your skill badge has been successfully minted on the Aptos blockchain</p>
+      </div>
+      
+      <div class="bg-gray-800 rounded-lg p-4 mb-6">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <div class="badge mr-4" style="width: 60px; height: 60px;">
+              <div class="badge-bg"></div>
+              <div class="badge-inner">
+                <i id="success-icon" class="fas fa-code text-primary text-xl"></i>
+              </div>
+            </div>
+            
+            <div>
+              <h4 id="success-skill" class="font-medium">Solidity</h4>
+              <p id="success-level" class="text-gray-400 text-sm">Expert</p>
+            </div>
+          </div>
+          
+          <div class="text-xs text-gray-500">
+            <a href="#" class="flex items-center hover:text-primary">
+              <i class="fas fa-external-link-alt mr-1"></i> View on Explorer
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <div class="space-y-3">
+        <button id="add-to-resume" class="w-full neon-button">
+          Add to Resume
+        </button>
+        
+        <button id="close-success-modal" class="w-full bg-gray-700 hover:bg-gray-600 text-white py-3 px-4 rounded-lg">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Loading screen handler
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        const loadingScreen = document.getElementById('loading-screen');
+        loadingScreen.classList.add('fade-out');
+        setTimeout(() => {
+          loadingScreen.style.display = 'none';
+        }, 500);
+      }, 2000); // Show loading screen for 2 seconds
+    });
+
+    // Generate particles
+    function createParticles() {
+      const container = document.getElementById('particles-container');
+      for (let i = 0; i < 50; i++) {
+        const particle = document.createElement('div');
+        particle.classList.add('particle');
+        particle.style.left = Math.random() * 100 + 'vw';
+        particle.style.top = Math.random() * 100 + 'vh';
+        particle.style.animationDuration = (5 + Math.random() * 10) + 's';
+        particle.style.animationDelay = Math.random() * 5 + 's';
+        container.appendChild(particle);
+      }
+    }
+    
+    // Initialize the application
+    function initApp() {
+      createParticles();
+      
+      // Login simulation
+      document.getElementById('google-login').addEventListener('click', () => {
+        document.getElementById('auth-section').classList.add('hidden');
+        document.getElementById('app').classList.remove('hidden');
+        startAutoSave();
+      });
+      
+      // Tab switching
+      document.getElementById('templates-tab').addEventListener('click', () => {
+        document.getElementById('templates-section').classList.remove('hidden');
+        document.getElementById('editor-section').classList.add('hidden');
+        document.getElementById('badges-section').classList.add('hidden');
+        
+        document.getElementById('templates-tab').classList.add('border-primary', 'neon-text');
+        document.getElementById('editor-tab').classList.remove('border-primary', 'neon-text');
+        document.getElementById('badges-tab').classList.remove('border-primary', 'neon-text');
+      });
+      
+      document.getElementById('editor-tab').addEventListener('click', () => {
+        document.getElementById('templates-section').classList.add('hidden');
+        document.getElementById('editor-section').classList.remove('hidden');
+        document.getElementById('badges-section').classList.add('hidden');
+        
+        document.getElementById('templates-tab').classList.remove('border-primary', 'neon-text');
+        document.getElementById('editor-tab').classList.add('border-primary', 'neon-text');
+        document.getElementById('badges-tab').classList.remove('border-primary', 'neon-text');
+      });
+      
+      document.getElementById('badges-tab').addEventListener('click', () => {
+        document.getElementById('templates-section').classList.add('hidden');
+        document.getElementById('editor-section').classList.add('hidden');
+        document.getElementById('badges-section').classList.remove('hidden');
+        
+        document.getElementById('templates-tab').classList.remove('border-primary', 'neon-text');
+        document.getElementById('editor-tab').classList.remove('border-primary', 'neon-text');
+        document.getElementById('badges-tab').classList.add('border-primary', 'neon-text');
+      });
+      
+      // Template selection
+      const templates = document.querySelectorAll('.template');
+      templates.forEach(template => {
+        template.addEventListener('click', () => {
+          // Remove selected class from all templates
+          templates.forEach(t => t.classList.remove('selected'));
+          
+          // Add selected class to clicked template
+          template.classList.add('selected');
+          
+          // Switch to editor tab
+          document.getElementById('editor-tab').click();
+        });
+      });
+      
+      // Auto-save functionality
+      function startAutoSave() {
+        setInterval(() => {
+          const saveIndicator = document.getElementById('saveIndicator');
+          saveIndicator.classList.add('show-save');
+          
+          setTimeout(() => {
+            saveIndicator.classList.remove('show-save');
+          }, 2000);
+        }, 25000); // Auto save every 25 seconds
+      }
+      
+      // NFT Badge minting
+      document.getElementById('mint-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Show minting modal
+        document.getElementById('minting-modal').classList.remove('hidden');
+        
+        // Simulate minting process
+        let progress = 0;
+        const progressBar = document.querySelector('#minting-progress div');
+        const statusText = document.getElementById('minting-status');
+        
+        const mintingInterval = setInterval(() => {
+          progress += 10;
+          progressBar.style.width = `${progress}%`;
+          
+          if (progress === 30) {
+            statusText.textContent = 'Preparing metadata...';
+          } else if (progress === 60) {
+            statusText.textContent = 'Uploading to Aptos blockchain...';
+          } else if (progress === 90) {
+            statusText.textContent = 'Finalizing transaction...';
+          }
+          
+          if (progress >= 100) {
+            clearInterval(mintingInterval);
+            
+            // Hide minting modal and show success modal
+            setTimeout(() => {
+              document.getElementById('minting-modal').classList.add('hidden');
+              document.getElementById('success-modal').classList.remove('hidden');
+              
+              // Update badge collection
+              document.getElementById('no-badges').classList.add('hidden');
+              document.getElementById('badge-collection').classList.remove('hidden');
+              
+              // Add the new badge to collection
+              const badgeCollection = document.getElementById('badge-collection');
+              const newBadge = document.createElement('div');
+              newBadge.className = 'badge mx-auto';
+              newBadge.innerHTML = `
+                <div class="badge-bg"></div>
+                <div class="badge-inner">
+                  <i class="fas fa-code text-primary text-xl mb-1"></i>
+                  <span class="text-xs">Solidity</span>
+                </div>
+              `;
+              badgeCollection.appendChild(newBadge);
+            }, 500);
+          }
+        }, 300);
+      });
+      
+      // Close modals
+      document.getElementById('close-success-modal').addEventListener('click', () => {
+        document.getElementById('success-modal').classList.add('hidden');
+      });
+      
+      document.getElementById('add-to-resume').addEventListener('click', () => {
+        document.getElementById('success-modal').classList.add('hidden');
+        document.getElementById('editor-tab').click();
+      });
+      
+      // Icon selection
+      const icons = document.querySelectorAll('#mint-form .h-14');
+      icons.forEach(icon => {
+        icon.addEventListener('click', () => {
+          icons.forEach(i => i.classList.remove('selected-icon'));
+          icon.classList.add('selected-icon');
+          
+          // Update preview
+          const selectedIcon = icon.querySelector('i').className;
+          document.getElementById('preview-icon').className = selectedIcon;
+        });
+      });
+      
+      // Export functionality
+      document.getElementById('export-btn').addEventListener('click', () => {
+        alert('Resume ready for export. Use browser print function (Ctrl+P or Cmd+P) to save as PDF');
+      });
+      
+      // Wallet connection
+      document.getElementById('connect-wallet').addEventListener('click', () => {
+        document.getElementById('wallet-modal').classList.remove('hidden');
+      });
+      
+      document.getElementById('close-wallet-modal').addEventListener('click', () => {
+        document.getElementById('wallet-modal').classList.add('hidden');
+      });
+
+      // Section handling
+      document.querySelectorAll('.section-btn').forEach(button => {
+        button.addEventListener('click', () => {
+          // Hide all forms
+          document.querySelectorAll('.section-form').forEach(form => {
+            form.classList.add('hidden');
+          });
+          
+          // Show selected form
+          const sectionId = button.getAttribute('data-section');
+          const form = document.getElementById(sectionId + '-form');
+          if (form) {
+            form.classList.remove('hidden');
+          }
+          
+          // Add active state to button
+          document.querySelectorAll('.section-btn').forEach(btn => {
+            btn.classList.remove('bg-primary', 'text-dark');
+          });
+          button.classList.add('bg-primary', 'text-dark');
+        });
+      });
+
+      // Update resume preview with personal info
+      function updatePersonalInfo() {
+        const form = document.getElementById('personal-info-form');
+        const preview = document.getElementById('resume-preview');
+        
+        // Get form values
+        const name = form.querySelector('input[placeholder="John Doe"]').value;
+        const title = form.querySelector('input[placeholder="Blockchain Developer"]').value;
+        const email = form.querySelector('input[type="email"]').value;
+        const phone = form.querySelector('input[type="tel"]').value;
+        const location = form.querySelector('input[placeholder="City, Country"]').value;
+        
+        // Update preview
+        const personalSection = preview.querySelector('.resume-section:first-child');
+        if (name) personalSection.querySelector('h1').textContent = name;
+        if (title) personalSection.querySelector('p:first-of-type').textContent = title;
+        
+        // Update contact info
+        const contactInfo = personalSection.querySelector('p:last-of-type');
+        contactInfo.innerHTML = `
+          <i class="fas fa-envelope text-sm mr-2"></i> ${email || 'email@example.com'} |
+          <i class="fas fa-phone text-sm mx-2"></i> ${phone || '+1 234 567 8900'} |
+          <i class="fas fa-map-marker-alt text-sm mx-2"></i> ${location || 'City, Country'}
+        `;
+        
+        // Show save indicator
+        const saveIndicator = document.getElementById('saveIndicator');
+        saveIndicator.classList.add('show-save');
+        setTimeout(() => {
+          saveIndicator.classList.remove('show-save');
+        }, 2000);
+      }
+
+      // Work Experience Functions
+      function addWorkExperience() {
+        const template = document.querySelector('.work-experience-entry').cloneNode(true);
+        template.querySelectorAll('input, textarea').forEach(input => input.value = '');
+        document.getElementById('work-experiences').appendChild(template);
+      }
+
+      function updateWorkExperience() {
+        const experiences = [];
+        document.querySelectorAll('.work-experience-entry').forEach(entry => {
+          experiences.push({
+            company: entry.querySelector('input[placeholder="Company Name"]').value,
+            title: entry.querySelector('input[placeholder="Job Title"]').value,
+            startDate: entry.querySelector('input[type="date"]:first-of-type').value,
+            endDate: entry.querySelector('input[type="date"]:last-of-type').value,
+            description: entry.querySelector('textarea').value
+          });
+        });
+        
+        // Update preview
+        const preview = document.getElementById('resume-preview');
+        const experienceSection = preview.querySelector('.resume-section:nth-child(3)');
+        experienceSection.innerHTML = `
+          <h2 class="text-xl font-semibold mb-3 border-b border-gray-300 pb-1">Experience</h2>
+          ${experiences.map(exp => `
+            <div class="mb-4">
+              <div class="flex justify-between">
+                <h3 class="font-semibold">${exp.title}</h3>
+                <span class="text-gray-600">${exp.startDate} - ${exp.endDate}</span>
+              </div>
+              <p class="text-gray-600 italic">${exp.company}</p>
+              <div class="text-gray-700 mt-2">${exp.description}</div>
+            </div>
+          `).join('')}
+        `;
+        
+        showSaveIndicator();
+      }
+
+      // Education Functions
+      function addEducation() {
+        const template = document.querySelector('.education-entry').cloneNode(true);
+        template.querySelectorAll('input, textarea').forEach(input => input.value = '');
+        document.getElementById('education-entries').appendChild(template);
+      }
+
+      function updateEducation() {
+        const educations = [];
+        document.querySelectorAll('.education-entry').forEach(entry => {
+          educations.push({
+            institution: entry.querySelector('input[placeholder="University/School Name"]').value,
+            degree: entry.querySelector('input[placeholder*="Bachelor"]').value,
+            startDate: entry.querySelector('input[type="date"]:first-of-type').value,
+            endDate: entry.querySelector('input[type="date"]:last-of-type').value,
+            description: entry.querySelector('textarea').value
+          });
+        });
+        
+        // Update preview
+        const preview = document.getElementById('resume-preview');
+        const educationSection = preview.querySelector('.resume-section:nth-child(4)');
+        educationSection.innerHTML = `
+          <h2 class="text-xl font-semibold mb-3 border-b border-gray-300 pb-1">Education</h2>
+          ${educations.map(edu => `
+            <div class="mb-4">
+              <div class="flex justify-between">
+                <h3 class="font-semibold">${edu.degree}</h3>
+                <span class="text-gray-600">${edu.startDate} - ${edu.endDate}</span>
+              </div>
+              <p class="text-gray-600 italic">${edu.institution}</p>
+              <div class="text-gray-700 mt-2">${edu.description}</div>
+            </div>
+          `).join('')}
+        `;
+        
+        showSaveIndicator();
+      }
+
+      // Skills Functions
+      function addSkillTag(input, container) {
+        const skills = input.value.split(',').map(skill => skill.trim()).filter(skill => skill);
+        container.innerHTML = skills.map(skill => `
+          <span class="px-3 py-1 bg-gray-700 rounded-full text-sm">
+            ${skill}
+            <button class="ml-2 text-gray-400 hover:text-white" onclick="this.parentElement.remove()">×</button>
+          </span>
+        `).join('');
+        input.value = '';
+      }
+
+      function updateSkills() {
+        const technicalSkills = Array.from(document.querySelectorAll('#technical-skills-tags span')).map(span => span.textContent.trim());
+        const softSkills = Array.from(document.querySelectorAll('#soft-skills-tags span')).map(span => span.textContent.trim());
+        const toolsSkills = Array.from(document.querySelectorAll('#tools-skills-tags span')).map(span => span.textContent.trim());
+        
+        // Update preview
+        const preview = document.getElementById('resume-preview');
+        const skillsSection = preview.querySelector('.resume-section:nth-child(5)');
+        skillsSection.innerHTML = `
+          <h2 class="text-xl font-semibold mb-3 border-b border-gray-300 pb-1">Skills</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <h3 class="font-semibold mb-2">Technical Skills</h3>
+              <div class="flex flex-wrap gap-2">
+                ${technicalSkills.map(skill => `
+                  <span class="px-3 py-1 bg-gray-200 rounded-full text-sm">${skill}</span>
+                `).join('')}
+              </div>
+            </div>
+            <div>
+              <h3 class="font-semibold mb-2">Tools & Technologies</h3>
+              <div class="flex flex-wrap gap-2">
+                ${toolsSkills.map(skill => `
+                  <span class="px-3 py-1 bg-gray-200 rounded-full text-sm">${skill}</span>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        `;
+        
+        showSaveIndicator();
+      }
+
+      // Projects Functions
+      function addProject() {
+        const template = document.querySelector('.project-entry').cloneNode(true);
+        template.querySelectorAll('input, textarea').forEach(input => input.value = '');
+        document.getElementById('project-entries').appendChild(template);
+      }
+
+      function updateProjects() {
+        const projects = [];
+        document.querySelectorAll('.project-entry').forEach(entry => {
+          projects.push({
+            name: entry.querySelector('input[placeholder="Project Name"]').value,
+            technologies: entry.querySelector('input[placeholder*="React"]').value,
+            projectUrl: entry.querySelector('input[type="url"]:first-of-type').value,
+            githubUrl: entry.querySelector('input[type="url"]:last-of-type').value,
+            description: entry.querySelector('textarea').value
+          });
+        });
+        
+        // Update preview
+        const preview = document.getElementById('resume-preview');
+        const projectsSection = preview.querySelector('.resume-section:nth-child(6)');
+        projectsSection.innerHTML = `
+          <h2 class="text-xl font-semibold mb-3 border-b border-gray-300 pb-1">Projects</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            ${projects.map(project => `
+              <div class="border border-gray-200 rounded-lg p-3">
+                <h3 class="font-semibold">${project.name}</h3>
+                <p class="text-gray-600 text-sm mt-1">${project.technologies}</p>
+                <p class="text-gray-700 text-sm mt-2">${project.description}</p>
+                <div class="flex gap-4 mt-2">
+                  ${project.projectUrl ? `<a href="${project.projectUrl}" class="text-blue-600 text-sm hover:underline" target="_blank">View Project</a>` : ''}
+                  ${project.githubUrl ? `<a href="${project.githubUrl}" class="text-blue-600 text-sm hover:underline" target="_blank">GitHub</a>` : ''}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+        
+        showSaveIndicator();
+      }
+
+      // Languages Functions
+      function addLanguage() {
+        const template = document.querySelector('.language-entry').cloneNode(true);
+        template.querySelectorAll('input, select').forEach(input => input.value = '');
+        document.getElementById('language-entries').appendChild(template);
+      }
+
+      function updateLanguages() {
+        const languages = [];
+        document.querySelectorAll('.language-entry').forEach(entry => {
+          languages.push({
+            language: entry.querySelector('input[placeholder="Language Name"]').value,
+            proficiency: entry.querySelector('select').value
+          });
+        });
+        
+        // Update preview
+        const preview = document.getElementById('resume-preview');
+        const languagesSection = preview.querySelector('.resume-section:nth-child(7)');
+        languagesSection.innerHTML = `
+          <h2 class="text-xl font-semibold mb-3 border-b border-gray-300 pb-1">Languages</h2>
+          <div class="flex flex-wrap gap-4">
+            ${languages.map(lang => `
+              <div class="flex items-center gap-2">
+                <span class="font-medium">${lang.language}</span>
+                <span class="text-gray-600">(${lang.proficiency})</span>
+              </div>
+            `).join('')}
+          </div>
+        `;
+        
+        showSaveIndicator();
+      }
+
+      // Common Functions
+      function showSaveIndicator() {
+        const saveIndicator = document.getElementById('saveIndicator');
+        saveIndicator.classList.add('show-save');
+        setTimeout(() => {
+          saveIndicator.classList.remove('show-save');
+        }, 2000);
+      }
+
+      // Initialize skill input handlers
+      document.getElementById('technical-skills').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ',') {
+          e.preventDefault();
+          addSkillTag(this, document.getElementById('technical-skills-tags'));
+        }
+      });
+
+      document.getElementById('soft-skills').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ',') {
+          e.preventDefault();
+          addSkillTag(this, document.getElementById('soft-skills-tags'));
+        }
+      });
+
+      document.getElementById('tools-skills').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ',') {
+          e.preventDefault();
+          addSkillTag(this, document.getElementById('tools-skills-tags'));
+        }
+      });
+    }
+    
+    // Initialize when the document is loaded
+    document.addEventListener('DOMContentLoaded', initApp);
+
+    // User Profile Dropdown functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      const userMenuButton = document.getElementById('user-menu-button');
+      const userDropdown = document.getElementById('user-dropdown');
+      const userProfile = document.getElementById('user-profile');
+
+      // Toggle dropdown on button click
+      userMenuButton.addEventListener('click', function(e) {
+        e.stopPropagation();
+        userDropdown.classList.toggle('hidden');
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', function(e) {
+        if (!userProfile.contains(e.target)) {
+          userDropdown.classList.add('hidden');
+        }
+      });
+
+      // Handle logout
+      document.getElementById('logout-button').addEventListener('click', function(e) {
+        e.preventDefault();
+        // Add your logout logic here
+        document.getElementById('auth-section').classList.remove('hidden');
+        document.getElementById('app').classList.add('hidden');
+        userDropdown.classList.add('hidden');
+      });
+
+      // Update user profile after login
+      function updateUserProfile(user) {
+        document.getElementById('user-name').textContent = user.name || 'User';
+        document.getElementById('user-avatar').src = user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=0D8ABC&color=fff`;
+      }
+
+      // Example: Update profile after Google login
+      document.getElementById('google-login').addEventListener('click', function() {
+        // Simulate user data after successful login
+        const user = {
+          name: 'John Doe',
+          avatar: 'https://ui-avatars.com/api/?name=John+Doe&background=0D8ABC&color=fff'
+        };
+        updateUserProfile(user);
+      });
+    });
+
+    // Add this to your existing script section
+    document.addEventListener('DOMContentLoaded', function() {
+      const exportBtn = document.getElementById('export-resume-btn');
+      const exportModal = document.getElementById('export-modal');
+
+      // Show export modal
+      exportBtn.addEventListener('click', () => {
+        exportModal.classList.remove('hidden');
+      });
+
+      // Close export modal
+      window.closeExportModal = function() {
+        exportModal.classList.add('hidden');
+      };
+
+      // Export as PDF
+      window.exportAsPDF = function() {
+        // Create a clone of the resume preview
+        const resumeContent = document.getElementById('resume-preview').cloneNode(true);
+        
+        // Remove any edit-related attributes and classes
+        resumeContent.querySelectorAll('[contenteditable]').forEach(element => {
+          element.removeAttribute('contenteditable');
+        });
+
+        // Create print-specific styles
+        const style = document.createElement('style');
+        style.textContent = `
+          @media print {
+            body * {
+              visibility: hidden;
+            }
+            #resume-print-container, #resume-print-container * {
+              visibility: visible;
+            }
+            #resume-print-container {
+              position: absolute;
+              left: 0;
+              top: 0;
+              width: 100%;
+            }
+          }
+        `;
+        
+        // Create a container for the print version
+        const printContainer = document.createElement('div');
+        printContainer.id = 'resume-print-container';
+        printContainer.appendChild(style);
+        printContainer.appendChild(resumeContent);
+        document.body.appendChild(printContainer);
+
+        // Trigger print dialog
+        window.print();
+
+        // Cleanup
+        document.body.removeChild(printContainer);
+        closeExportModal();
+      };
+
+      // Export as Word
+      window.exportAsWord = function() {
+        const resumeContent = document.getElementById('resume-preview').innerHTML;
+        
+        // Create Word document HTML
+        const wordContent = `
+          <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+          <head>
+            <meta charset="utf-8">
+            <title>Resume</title>
+            <style>
+              body { font-family: 'Arial', sans-serif; }
+              /* Add your resume styles here */
+            </style>
+          </head>
+          <body>
+            ${resumeContent}
+          </body>
+          </html>
+        `;
+
+        // Create blob and download
+        const blob = new Blob([wordContent], { type: 'application/msword' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'resume.doc';
+        link.click();
+        
+        closeExportModal();
+      };
+    });
+
+    // Add these functions to handle real-time updates
+    function updatePersonalInfo() {
+      const form = document.querySelector('#personal-info-form');
+      const preview = document.querySelector('#resume-preview');
+      
+      // Get all input values
+      const fullName = form.querySelector('input[name="firstName"]').value + ' ' + form.querySelector('input[name="lastName"]').value;
+      const jobTitle = form.querySelector('input[name="title"]').value;
+      const email = form.querySelector('input[name="email"]').value;
+      const phone = form.querySelector('input[name="phone"]').value;
+      const location = form.querySelector('input[name="location"]').value;
+      const website = form.querySelector('input[name="website"]').value;
+      const summary = form.querySelector('textarea[name="summary"]').value;
+      
+      // Update preview
+      preview.querySelector('h1').textContent = fullName || 'Your Name';
+      preview.querySelector('.text-gray-600:first-of-type').textContent = jobTitle || 'Your Title';
+      
+      // Update contact info
+      const contactInfo = preview.querySelector('.text-gray-600:nth-of-type(2)');
+      contactInfo.innerHTML = `
+        ${email ? `<i class="fas fa-envelope text-sm mr-2"></i>${email}` : ''}
+        ${phone ? `<i class="fas fa-phone text-sm mx-2"></i>${phone}` : ''}
+        ${location ? `<i class="fas fa-map-marker-alt text-sm mx-2"></i>${location}` : ''}
+        ${website ? `<i class="fas fa-globe text-sm mx-2"></i>${website}` : ''}
+      `;
+
+      // Update summary if exists
+      const summarySection = preview.querySelector('.resume-section:nth-child(2) p');
+      if (summarySection) {
+        summarySection.textContent = summary;
+      }
+
+      showSaveIndicator();
+    }
+
+    function updateWorkExperience() {
+      const entries = document.querySelectorAll('.work-experience-entry');
+      const preview = document.querySelector('#resume-preview');
+      const experienceSection = preview.querySelector('.resume-section:nth-child(3)');
+      
+      let experienceHTML = `<h2 class="text-xl font-semibold mb-3 border-b border-gray-300 pb-1">Experience</h2>`;
+      
+      entries.forEach(entry => {
+        const company = entry.querySelector('input[placeholder="Company Name"]').value;
+        const title = entry.querySelector('input[placeholder="Job Title"]').value;
+        const startDate = entry.querySelector('input[type="date"]:first-of-type').value;
+        const endDate = entry.querySelector('input[type="date"]:last-of-type').value;
+        const description = entry.querySelector('textarea').value;
+        
+        if (company || title) {
+          experienceHTML += `
+            <div class="mb-4">
+              <div class="flex justify-between">
+                <h3 class="font-semibold">${title || 'Position'}</h3>
+                <span class="text-gray-600">${formatDate(startDate)} - ${formatDate(endDate)}</span>
+              </div>
+              <p class="text-gray-600 italic">${company || 'Company'}</p>
+              <div class="text-gray-700 mt-2">${description || ''}</div>
+            </div>
+          `;
+        }
+      });
+      
+      experienceSection.innerHTML = experienceHTML;
+      showSaveIndicator();
+    }
+
+    function updateEducation() {
+      const entries = document.querySelectorAll('.education-entry');
+      const preview = document.querySelector('#resume-preview');
+      const educationSection = preview.querySelector('.resume-section:nth-child(4)');
+      
+      let educationHTML = `<h2 class="text-xl font-semibold mb-3 border-b border-gray-300 pb-1">Education</h2>`;
+      
+      entries.forEach(entry => {
+        const institution = entry.querySelector('input[placeholder="University/School Name"]').value;
+        const degree = entry.querySelector('input[placeholder*="Bachelor"]').value;
+        const startDate = entry.querySelector('input[type="date"]:first-of-type').value;
+        const endDate = entry.querySelector('input[type="date"]:last-of-type').value;
+        const description = entry.querySelector('textarea').value;
+        
+        if (institution || degree) {
+          educationHTML += `
+            <div class="mb-4">
+              <div class="flex justify-between">
+                <h3 class="font-semibold">${degree || 'Degree'}</h3>
+                <span class="text-gray-600">${formatDate(startDate)} - ${formatDate(endDate)}</span>
+              </div>
+              <p class="text-gray-600 italic">${institution || 'Institution'}</p>
+              <div class="text-gray-700 mt-2">${description || ''}</div>
+            </div>
+          `;
+        }
+      });
+      
+      educationSection.innerHTML = educationHTML;
+      showSaveIndicator();
+    }
+
+    function updateSkills() {
+      const preview = document.querySelector('#resume-preview');
+      const skillsSection = preview.querySelector('.resume-section:nth-child(5)');
+      
+      const technicalSkills = Array.from(document.querySelectorAll('#technical-skills-tags .skill-tag')).map(tag => tag.textContent.trim());
+      const softSkills = Array.from(document.querySelectorAll('#soft-skills-tags .skill-tag')).map(tag => tag.textContent.trim());
+      const toolsSkills = Array.from(document.querySelectorAll('#tools-skills-tags .skill-tag')).map(tag => tag.textContent.trim());
+      
+      let skillsHTML = `
+        <h2 class="text-xl font-semibold mb-3 border-b border-gray-300 pb-1">Skills</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      `;
+      
+      if (technicalSkills.length > 0) {
+        skillsHTML += `
+          <div>
+            <h3 class="font-semibold mb-2">Technical Skills</h3>
+            <div class="flex flex-wrap gap-2">
+              ${technicalSkills.map(skill => `
+                <span class="px-3 py-1 bg-gray-200 rounded-full text-sm">${skill}</span>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+      
+      if (toolsSkills.length > 0) {
+        skillsHTML += `
+          <div>
+            <h3 class="font-semibold mb-2">Tools & Technologies</h3>
+            <div class="flex flex-wrap gap-2">
+              ${toolsSkills.map(skill => `
+                <span class="px-3 py-1 bg-gray-200 rounded-full text-sm">${skill}</span>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+      
+      skillsSection.innerHTML = skillsHTML + '</div>';
+      showSaveIndicator();
+    }
+
+    function updateProjects() {
+      const entries = document.querySelectorAll('.project-entry');
+      const preview = document.querySelector('#resume-preview');
+      const projectsSection = preview.querySelector('.resume-section:nth-child(6)');
+      
+      let projectsHTML = `
+        <h2 class="text-xl font-semibold mb-3 border-b border-gray-300 pb-1">Projects</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      `;
+      
+      entries.forEach(entry => {
+        const name = entry.querySelector('input[placeholder="Project Name"]').value;
+        const technologies = entry.querySelector('input[placeholder*="React"]').value;
+        const projectUrl = entry.querySelector('input[type="url"]:first-of-type').value;
+        const githubUrl = entry.querySelector('input[type="url"]:last-of-type').value;
+        const description = entry.querySelector('textarea').value;
+        
+        if (name || description) {
+          projectsHTML += `
+            <div class="border border-gray-200 rounded-lg p-3">
+              <h3 class="font-semibold">${name || 'Project Name'}</h3>
+              ${technologies ? `<p class="text-gray-600 text-sm mt-1">${technologies}</p>` : ''}
+              ${description ? `<p class="text-gray-700 text-sm mt-2">${description}</p>` : ''}
+              <div class="flex gap-4 mt-2">
+                ${projectUrl ? `<a href="${projectUrl}" class="text-blue-600 text-sm hover:underline" target="_blank">View Project</a>` : ''}
+                ${githubUrl ? `<a href="${githubUrl}" class="text-blue-600 text-sm hover:underline" target="_blank">GitHub</a>` : ''}
+              </div>
+            </div>
+          `;
+        }
+      });
+      
+      projectsSection.innerHTML = projectsHTML + '</div>';
+      showSaveIndicator();
+    }
+
+    function formatDate(dateString) {
+      if (!dateString) return 'Present';
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    }
+
+    function showSaveIndicator() {
+      const indicator = document.getElementById('saveIndicator');
+      indicator.classList.add('show-save');
+      setTimeout(() => {
+        indicator.classList.remove('show-save');
+      }, 2000);
+    }
+
+    // Add skill tag functionality
+    function addSkillTag(input, container) {
+      const skills = input.value.split(',').map(skill => skill.trim()).filter(skill => skill);
+      skills.forEach(skill => {
+        const tag = document.createElement('span');
+        tag.className = 'skill-tag px-3 py-1 bg-gray-700 rounded-full text-sm flex items-center';
+        tag.innerHTML = `
+          ${skill}
+          <button class="ml-2 text-gray-400 hover:text-white" onclick="removeSkillTag(this)">×</button>
+        `;
+        container.appendChild(tag);
+      });
+      input.value = '';
+    }
+
+    function removeSkillTag(button) {
+      button.parentElement.remove();
+      updateSkills();
+    }
+
+    // Initialize event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+      // Add skill input handlers
+      ['technical-skills', 'soft-skills', 'tools-skills'].forEach(id => {
+        const input = document.getElementById(id);
+        const container = document.getElementById(id + '-tags');
+        
+        input.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault();
+            addSkillTag(this, container);
+            updateSkills();
+          }
+        });
+      });
+
+      // Add form submission handlers
+      document.querySelectorAll('.section-form form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+          e.preventDefault();
+          const sectionId = this.closest('.section-form').id;
+          
+          switch(sectionId) {
+            case 'personal-info-form':
+              updatePersonalInfo();
+              break;
+            case 'work-experience-form':
+              updateWorkExperience();
+              break;
+            case 'education-form':
+              updateEducation();
+              break;
+            case 'skills-form':
+              updateSkills();
+              break;
+            case 'projects-form':
+              updateProjects();
+              break;
+          }
+        });
+      });
+    });
+
+    // Add this to your existing script section
+    document.addEventListener('DOMContentLoaded', function() {
+      const badgeIcons = document.querySelectorAll('.badge-icon');
+      const previewIcon = document.getElementById('preview-icon');
+      const previewSkill = document.getElementById('preview-skill');
+      
+      badgeIcons.forEach(icon => {
+        icon.addEventListener('click', function() {
+          // Remove selected class from all icons
+          badgeIcons.forEach(i => i.classList.remove('selected-icon'));
+          
+          // Add selected class to clicked icon
+          this.classList.add('selected-icon');
+          
+          // Get icon class and name from data attributes
+          const iconClass = this.getAttribute('data-icon');
+          const skillName = this.getAttribute('data-name');
+          
+          // Update preview
+          previewIcon.className = `fas ${iconClass} text-6xl mb-3 text-blue-400`;
+          previewSkill.textContent = skillName;
+          
+          // Add animation class to preview
+          const previewBadge = document.querySelector('.hexagon');
+          previewBadge.classList.add('scale-105');
+          setTimeout(() => {
+            previewBadge.classList.remove('scale-105');
+          }, 200);
+        });
+      });
+    });
+  </script>
+</body>
+</html>
